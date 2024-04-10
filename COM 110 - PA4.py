@@ -12,12 +12,16 @@ from graphics import *
 from random import randrange
 
 def main():
-    
+
+    # Getting users input of fileName and maxCount and passing the graphics window to be able to draw into it 
     fileName, maxCount, word_cloud = drawGraphics()
+    # Creating a dictionary by reading the fileName, passing the fileName and the number of words to return and returning a dictionary of the words and their frequencies
     counts = textRead(fileName, maxCount)
+    # Passing the dictionary and the graphics window to be used in the function that draws the word cloud
     drawWordCloud(counts,word_cloud)
 
 def drawBackground(pt1,pt2,color,name):
+    
     # Creating the form of the background
     background = Rectangle(pt1,pt2)
     background.setFill(color)
@@ -34,7 +38,7 @@ def drawGraphics():
     # Drawing a background
     drawBackground(Point(0,0), Point(100,100),"lightgrey",word_cloud)
 
-    # Drawing a message
+    # Drawing instructions
     intro = Text(Point(50,50),"Welcome to my Wordcloud Generator.")
     intro.setSize(30)
     intro.setStyle("bold")
@@ -51,17 +55,13 @@ def drawGraphics():
     word_cloud.getMouse()
     explanation.undraw()
     continue_click.undraw()
-
-    # I need to make it so the user can choose how many words they want to display and if they dont choose it displays the top 25.
-    #enter the number of words they want to display, if not 25
+    # Prompting the user to enter an integer and a text file
     num_words_entry = Entry(Point(50,50),90)
     num_words_entry.setText("How many words would you like to display in the word cloud? Maximum 25. Delete this text first and enter integer here: ")
     num_words_entry.draw(word_cloud)
     continue_click.draw(word_cloud)
     word_cloud.getMouse()
     num_words_entry.undraw()
-
-    # prompt for the file to parse
     entry1 = Entry(Point(50, 50), 60)
     entry1.setText("Enter the name of the file to analyze. Delete this text first and include the .txt: ")
     entry1.draw(word_cloud)
@@ -70,24 +70,29 @@ def drawGraphics():
     help_text.draw(word_cloud)
     word_cloud.getMouse()
 
+    # Getting the text from the entry boxes
     fileName = entry1.getText()
+
+    # Turning numWords into an integer
     # wrapping in a try..except in case a invalid integer is entered
     # in that case, default to 25
     try:
         maxCount = int(num_words_entry.getText())
     except:
         maxCount = 25
+        
+    # Making sure maxCount is the maximum number of words to be displayed
     if maxCount > 25:
         maxCount = 25
+
+    # Undrawing text
     entry1.undraw()
     continue_click.undraw()
-
     entry1.undraw()
     continue_click.undraw()
     help_text.undraw()
+    
     return fileName, maxCount, word_cloud
-
-
 
 def textRead(text_name, maxCount):   
     # Reading the file and converting all the letters to lower case
@@ -127,29 +132,28 @@ def textRead(text_name, maxCount):
                 else:
                     counts[word] = counts.get(word,0) + 1
 
-    # Creating a list of the words and their frequencies
+    # Creating a dictionary of the words and their frequencies and sorting by the frequencies
     # I was inspired by: https://www.geeksforgeeks.org/python-program-to-sort-the-list-according-to-the-column-using-lambda/#google_vignette
 
     sorted_dict = sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
-    # set maximum word count to maxCount
+    # Setting the maximum word count to maxCount
     small_word_list = {}
     word_count = 0
     for key, value in sorted_dict:
-        ####for i in range(int_value):??????
         if word_count < maxCount:
             small_word_list[key] = value
-            word_count = word_count + 1
-    
+            word_count = word_count =+ 1
     
     return small_word_list
 
 def checkValidPoint(word,count, x, y, pts_list):
+    
     existingWord = 0
     letters = len(word)
     size = (count * 2) + 4
 
-
+    # Creating a rectangle surrounding each word based on the font size and number of letters
     for word_pt in pts_list:
 
         pt_x = word_pt.getX()
@@ -158,14 +162,16 @@ def checkValidPoint(word,count, x, y, pts_list):
         rect_y_left = pt_y-(size/4)
         rect_x_right = pt_x+(letters/2)
         rect_y_right = pt_y+(size/4)
-            
+
         word_rect = Rectangle(Point(rect_x_left,rect_y_left), Point(rect_x_right,rect_y_right))
+
+        # Determining if the center coordinates of the word fall within the boundaries of the rectangle of any other word
         if x > rect_x_left and y > rect_y_left and x < rect_x_right and y < rect_y_right:
             existingWord = existingWord  + 1
         else:
             existingWord = existingWord  + 0
 
-
+    # Returning false as long as the word coordinates are not within any other rectangle
     if existingWord > 0:
         return False
     else:
@@ -175,22 +181,26 @@ def drawWordCloud(counts, word_cloud):
     pts_list =[]
     for key in counts:
 
-        # set text size based on word count
+        # Setting the text size based on the word count
         size = (counts[key] * 2) + 4
             
-        # set a random color
+        # Assigning values to create a random color
         r = randrange(0,256)
         g = randrange(0,256)
         b = randrange(0,256)
 
-        # choose a random location for the text   
+        # Choosing a random location for the text   
         x = randrange(5,95)
         y = randrange(0,100)
-        
+
+        # Drawing the words
         draw_words = Text(Point(x,y), key)
+        # Getting the center coordinates of the word
         word_pt = draw_words.getAnchor()
         pt_x = word_pt.getX()
         pt_y = word_pt.getY()
+
+        # While the center coordinates of the word fall within any other words rectangle, assigning a new random coordinate to the word 
         while (checkValidPoint(key, counts[key], pt_x, pt_y, pts_list) == False):
             x = randrange(5,95)
             y = randrange(0,100)
@@ -198,13 +208,14 @@ def drawWordCloud(counts, word_cloud):
             word_pt = draw_words.getAnchor()
             pt_x = word_pt.getX()
             pt_y = word_pt.getY()
+
+        # Adding the words that don't overlap to the list
         pts_list.append(word_pt)
     
-
+        # Setting the word to be a random color and size
         draw_words.setTextColor(color_rgb(r, g, b))
         draw_words.setSize(size)
+        # Drawing the words to the word_cloud
         draw_words.draw(word_cloud)
-
-
 
 main()
