@@ -13,8 +13,8 @@ from random import randrange
 
 def main():
     
-    text1,word_cloud = drawGraphics()
-    counts = textRead(text1)
+    fileName, maxCount, word_cloud = drawGraphics()
+    counts = textRead(fileName, maxCount)
     drawWordCloud(counts,word_cloud)
 
 def drawBackground(pt1,pt2,color,name):
@@ -51,27 +51,45 @@ def drawGraphics():
     word_cloud.getMouse()
     explanation.undraw()
     continue_click.undraw()
+
+    # I need to make it so the user can choose how many words they want to display and if they dont choose it displays the top 25.
+    #enter the number of words they want to display, if not 25
+    num_words_entry = Entry(Point(50,50),90)
+    num_words_entry.setText("How many words would you like to display in the word cloud? Maximum 25. Delete this text first and enter integer here: ")
+    num_words_entry.draw(word_cloud)
+    continue_click.draw(word_cloud)
+    word_cloud.getMouse()
+    num_words_entry.undraw()
+
+    # prompt for the file to parse
     entry1 = Entry(Point(50, 50), 60)
     entry1.setText("Enter the name of the file to analyze. Delete this text first and include the .txt: ")
     entry1.draw(word_cloud)
-    continue_click.draw(word_cloud)
     help_text = Text(Point(50,60), "If you have no text file to input, you can use Little Red Riding Hood by typing in: story.txt")
     help_text.setSize(15)
     help_text.draw(word_cloud)
     word_cloud.getMouse()
-    text1 = entry1.getText()
+
+    fileName = entry1.getText()
+    # wrapping in a try..except in case a invalid integer is entered
+    # in that case, default to 25
+    try:
+        maxCount = int(num_words_entry.getText())
+    except:
+        maxCount = 25
+    if maxCount > 25:
+        maxCount = 25
+    entry1.undraw()
+    continue_click.undraw()
+
     entry1.undraw()
     continue_click.undraw()
     help_text.undraw()
-    return text1, word_cloud
+    return fileName, maxCount, word_cloud
 
-# I need to make it so the user can choose how many words they want to display and if they dont choose it displays the top 25.
-#enter the number of words they want to display, if not 25
 
-def byfreq(pair):
-    return pair[1]
 
-def textRead(text_name):   
+def textRead(text_name, maxCount):   
     # Reading the file and converting all the letters to lower case
     text = open(text_name, "r").read().lower()
 
@@ -110,19 +128,18 @@ def textRead(text_name):
                     counts[word] = counts.get(word,0) + 1
 
     # Creating a list of the words and their frequencies
+    # I was inspired by: https://www.geeksforgeeks.org/python-program-to-sort-the-list-according-to-the-column-using-lambda/#google_vignette
 
     sorted_dict = sorted(counts.items(), key=lambda x: x[1], reverse=True)
 
-    # set maximum word count to 25
+    # set maximum word count to maxCount
     small_word_list = {}
     word_count = 0
     for key, value in sorted_dict:
-        if word_count < 25:
+        ####for i in range(int_value):??????
+        if word_count < maxCount:
             small_word_list[key] = value
             word_count = word_count + 1
-
-    print(small_word_list)    
-
     
     
     return small_word_list
@@ -175,8 +192,6 @@ def drawWordCloud(counts, word_cloud):
         pt_x = word_pt.getX()
         pt_y = word_pt.getY()
         while (checkValidPoint(key, counts[key], pt_x, pt_y, pts_list) == False):
-            print(" ")
-            print(x,y)
             x = randrange(5,95)
             y = randrange(0,100)
             draw_words = Text(Point(x,y), key)
